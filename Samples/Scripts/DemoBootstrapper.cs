@@ -1,7 +1,6 @@
 using System;
 using UnityEngine;
 using Cysharp.Threading.Tasks;
-using VoyageForge.UI;
 using VoyageForge.UIKit.Runtime;
 
 namespace VoyageForge.UIKit.Samples

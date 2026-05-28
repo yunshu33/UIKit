@@ -1,5 +1,4 @@
 using UnityEngine;
-using VoyageForge.UI;
 using VoyageForge.UIKit.Runtime;
 
 namespace VoyageForge.UIKit.Samples
