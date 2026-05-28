@@ -1,0 +1,16 @@
+{
+    "name": "VoyageForge.UIKit.Editor",
+    "rootNamespace": "",
+    "references": [
+        "GUID:b4750f50a699160409435c256b9da273"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

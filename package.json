@@ -1,0 +1,20 @@
+{
+  "name": "com.voyageforge.uikit",
+  "version": "0.1.0",
+  "displayName": "VoyageForge UIKit",
+  "description": "Lightweight Unity UI framework — single-stack navigation + popup management. Built on UGUI + UniTask. 轻量级 UI 框架。",
+  "unity": "2022.3",
+  "dependencies": {
+    "com.cysharp.unitask": "2.5.0"
+  },
+  "keywords": [
+    "ui",
+    "framework",
+    "ugui",
+    "navigation",
+    "popup"
+  ],
+  "author": {
+    "name": "VoyageForge"
+  }
+}
