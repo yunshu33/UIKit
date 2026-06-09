@@ -26,33 +26,27 @@ namespace VoyageForge.UIKit.Editor
         {
             var root = rootVisualElement;
 
-            // 顶部拖放区
-            var dropZone = new VisualElement
-            {
-                style =
-                {
-                    height = 48, backgroundColor = new Color(0.18f, 0.18f, 0.18f),
-                    justifyContent = Justify.Center, alignItems = Align.Center,
-                    borderBottomWidth = 1, borderBottomColor = new Color(0.3f, 0.3f, 0.3f),
-                }
-            };
-            dropZone.Add(new Label("拖入 Prefab（支持批量）"));
+            // 拖放区
+            var dropZone = new VisualElement { style = { marginBottom = 4 } };
             dropZone.RegisterCallback<DragUpdatedEvent>(OnDragUpdate);
             dropZone.RegisterCallback<DragPerformEvent>(OnDragPerform);
+            var dropLabel = new Label("从 Project 拖入 BasePanel Prefab") { style = { unityFontStyleAndWeight = FontStyle.Bold } };
+            dropZone.Add(dropLabel);
             root.Add(dropZone);
 
             // 工具栏
-            var toolbar = new VisualElement { style = { flexDirection = FlexDirection.Row, marginTop = 8, marginBottom = 4 } };
-            toolbar.Add(new Button(() => { _entries.Add(new PanelPathEntry()); _listView.Rebuild(); SaveEntries(); })
+            var toolbar = new Toolbar();
+            toolbar.Add(new ToolbarButton(() => { _entries.Add(new PanelPathEntry()); _listView.Rebuild(); SaveEntries(); })
                 { text = "添加行" });
-            toolbar.Add(new Button(ApplyAll) { text = "全部应用" });
+            toolbar.Add(new ToolbarButton(ApplyAll) { text = "全部应用" });
             root.Add(toolbar);
 
-            // 列表 (Multiple selection + drag reorder)
-            _listView = new ListView(_entries, 48, MakeItem, BindItem)
+            // 列表
+            _listView = new ListView(_entries, 24, MakeItem, BindItem)
             {
                 selectionType = SelectionType.Multiple,
                 reorderable = true,
+                showAlternatingRowBackgrounds = AlternatingRowBackground.All,
             };
             root.Add(_listView);
         }
@@ -89,17 +83,14 @@ namespace VoyageForge.UIKit.Editor
             prefabField.style.flexGrow = 1;
             row.Add(prefabField);
 
-            var groupLabel = new Label { name = "group", style = { width = 80, unityTextAlign = TextAnchor.MiddleCenter, fontSize = 10 } };
-            row.Add(groupLabel);
-
-            var statusLabel = new Label { name = "status", style = { width = 28, unityTextAlign = TextAnchor.MiddleCenter } };
+            var statusLabel = new Label { name = "status", style = { width = 24, unityTextAlign = TextAnchor.MiddleCenter } };
             row.Add(statusLabel);
 
-            var applyBtn = new Button { text = "应用", name = "apply", style = { width = 50 } };
+            var applyBtn = new Button { text = "应用", name = "apply", style = { width = 48 } };
             applyBtn.clicked += () => ApplySingle((int)applyBtn.userData);
             row.Add(applyBtn);
 
-            var removeBtn = new Button { text = "×", name = "remove", style = { width = 28 } };
+            var removeBtn = new Button { text = "×", name = "remove", style = { width = 24 } };
             removeBtn.clicked += () => { _entries.RemoveAt((int)removeBtn.userData); _listView.Rebuild(); SaveEntries(); };
             row.Add(removeBtn);
 
@@ -110,13 +101,8 @@ namespace VoyageForge.UIKit.Editor
         {
             var entry = _entries[i];
             el.Q<ObjectField>("prefab").SetValueWithoutNotify(entry.Prefab);
-
-            var path = GetResourcesPath(entry.Prefab);
-            el.Q<Label>("group").text = path != null ? GetGroup(path) : "-";
-
             el.Q<Label>("status").text = entry.Applied ? "✓" : "○";
             el.Q<Label>("status").style.color = entry.Applied ? new Color(0.2f, 0.7f, 0.2f) : Color.gray;
-
             el.Q<Button>("apply").userData = i;
             el.Q<Button>("remove").userData = i;
         }
