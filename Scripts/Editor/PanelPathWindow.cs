@@ -105,16 +105,15 @@ namespace VoyageForge.UIKit.Editor
             if (e.Prefab == null) return;
             var panel = e.Prefab.GetComponent<BasePanel>();
             var path = GetResourcesPath(e.Prefab);
-            if (panel != null && path != null)
-            {
-                ApplyAttribute(panel.GetType(), path);
-                _listView.Rebuild();
-                SaveEntries();
-            }
+            if (panel == null || path == null) return;
+            ApplyAttribute(panel.GetType(), path);
+            _listView.Rebuild();
+            SaveEntries();
         }
 
         private void ApplyAll()
         {
+            SaveEntries();
             for (int i = 0; i < _entries.Count; i++)
             {
                 var e = _entries[i];
@@ -124,8 +123,8 @@ namespace VoyageForge.UIKit.Editor
                 if (panel == null || path == null) continue;
                 ApplyAttribute(panel.GetType(), path);
             }
+            AssetDatabase.Refresh();
             _listView.Rebuild();
-            SaveEntries();
         }
 
         // ---- 持久化 ----
@@ -191,7 +190,6 @@ namespace VoyageForge.UIKit.Editor
                 $"{attr}\n    class {className} :");
 
             File.WriteAllText(scriptPath, content);
-            AssetDatabase.Refresh();
             Debug.Log($"[UIKit] PanelPath applied: {className} → {resPath}");
         }
 
