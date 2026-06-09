@@ -27,7 +27,6 @@ namespace VoyageForge.UIKit.Samples
                 _dialogButton.onClick.AddListener(() =>
                     UIManager.Instance.Show<ConfirmDialog>());
 
-           
             
             return UniTask.CompletedTask;
         }

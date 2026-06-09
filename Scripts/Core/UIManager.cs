@@ -67,9 +67,6 @@ namespace VoyageForge.UIKit.Runtime
 
         // ---- 公开 API ----
 
-        /// <summary> 显示 FullPanel（Fire & Forget）。 </summary>
-        public void Show<T>() where T : FullPanel => ShowAsync<T>().Forget();
-
         /// <summary> 显示 FullPanel（异步）。 </summary>
         public async UniTask<T> ShowAsync<T>() where T : FullPanel
         {
@@ -83,9 +80,6 @@ namespace VoyageForge.UIKit.Runtime
             return panel;
         }
 
-        /// <summary> 显示已有 FullPanel 实例（Fire & Forget）。 </summary>
-        public void Show(FullPanel panel) => ShowAsync(panel).Forget();
-
         /// <summary> 显示已有 FullPanel 实例（异步）。 </summary>
         public async UniTask ShowAsync(FullPanel panel)
         {
@@ -93,33 +87,30 @@ namespace VoyageForge.UIKit.Runtime
             await _stack.Push(panel);
         }
 
-        /// <summary> 隐藏栈顶（Fire & Forget）。 </summary>
-        public void Hide() => HideAsync().Forget();
-
         /// <summary> 隐藏栈顶（异步）。 </summary>
         public async UniTask HideAsync()
         {
             PanelProvider.Release(await _stack.Pop());
         }
 
-        public void Hide(FullPanel panel) => HideAsync(panel).Forget();
-
+        /// <summary> 隐藏指定 FullPanel（异步）。 </summary>
         public async UniTask HideAsync(FullPanel panel)
         {
             if (_stack.Peek() == panel) await _stack.Pop();
             await panel.Hide();
         }
 
+        /// <summary> 获取栈顶面板。 </summary>
         public FullPanel GetActivePanel() => _stack.Count > 0 ? _stack.Peek() : null;
 
+        /// <summary> 输入路由。 </summary>
         public bool OnInput(KeyCode key, bool down)
         {
             var top = _stack.Peek();
             return top != null && top.State == BasePanel.PanelState.Active && top.OnInput(key, down);
         }
 
-        public void Close(BasePanel panel) => CloseAsync(panel).Forget();
-
+        /// <summary> 关闭面板（异步）。 </summary>
         public async UniTask CloseAsync(BasePanel panel)
         {
             if (_stack.Peek() == panel) await _stack.Pop();

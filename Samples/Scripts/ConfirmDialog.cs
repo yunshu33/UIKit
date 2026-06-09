@@ -48,7 +48,7 @@ namespace VoyageForge.UIKit.Samples
         private void OnCancel()
         {
             Debug.Log("[ConfirmDialog] 取消");
-            UIManager.Instance.Hide();
+            HideSelf();
         }
 
         protected override UniTask OnShow()

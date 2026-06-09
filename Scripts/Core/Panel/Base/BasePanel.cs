@@ -87,7 +87,7 @@ namespace VoyageForge.UIKit.Runtime
             if (!down) return false;
             if (key == KeyCode.Escape)
             {
-                UIManager.Instance.Hide();
+                UIManager.Instance.HideAsync().Forget();
                 return true;
             }
 

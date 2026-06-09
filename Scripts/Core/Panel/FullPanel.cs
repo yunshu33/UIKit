@@ -36,16 +36,16 @@ namespace VoyageForge.UIKit.Runtime
             OnResumed?.Invoke();
         }
 
-        internal void ShowSelf() => ShowSelfAsync().Forget();
+        public void ShowSelf() => ShowSelfAsync().Forget();
 
-        internal async UniTask ShowSelfAsync()
+        public async UniTask ShowSelfAsync()
         {
            await UIManager.Instance.ShowAsync(this);
         }
         
-        internal void CloseSelf() => CloseSelfAsync().Forget();
+        public void CloseSelf() => CloseSelfAsync().Forget();
 
-        internal async UniTask CloseSelfAsync()
+        public async UniTask CloseSelfAsync()
         {
             await UIManager.Instance.CloseAsync(this);
         }
@@ -53,12 +53,12 @@ namespace VoyageForge.UIKit.Runtime
         /// <summary>
         /// 关闭自身
         /// </summary>
-        internal void HideSelf() => HideSelfAsync().Forget();
+        public  void HideSelf() => HideSelfAsync().Forget();
 
         /// <summary>
         /// 关闭自身
         /// </summary>
-        internal async UniTask HideSelfAsync()
+        public async UniTask HideSelfAsync()
         {
             await UIManager.Instance.HideAsync(this);
         }
