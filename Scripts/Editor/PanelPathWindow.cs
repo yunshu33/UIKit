@@ -57,9 +57,10 @@ namespace VoyageForge.UIKit.Editor
                     (evt.target as ObjectField).value = null;
             });
             prefabField.style.flexGrow = 1;
+            prefabField.style.maxWidth = 260;
             row.Add(prefabField);
 
-            var statusLabel = new Label { name = "status", style = { unityTextAlign = TextAnchor.MiddleCenter } };
+            var statusLabel = new Label { name = "status", style = { width = 22, unityTextAlign = TextAnchor.MiddleCenter } };
             row.Add(statusLabel);
 
             var applyBtn = new Button { text = "应用", name = "apply", style = { width = 48 } };
