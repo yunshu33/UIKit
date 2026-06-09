@@ -27,14 +27,14 @@ namespace VoyageForge.UIKit.Runtime
             }
         }
 
-        protected override UniTask<BasePanel> InstantiateAsync(string path)
+        protected override async UniTask<BasePanel> InstantiateAsync(string path)
         {
             var idx = path.LastIndexOf("Resources/", StringComparison.Ordinal);
             var resPath = idx >= 0 ? path[(idx + 10)..] : path;
 
-            var prefab = Resources.Load<BasePanel>(resPath);
-            if (prefab == null) return UniTask.FromResult<BasePanel>(null);
-            return UniTask.FromResult<BasePanel>(Object.Instantiate(prefab));
+            var prefab = await Resources.LoadAsync<BasePanel>(resPath);
+            if (prefab == null) return null;
+            return Object.Instantiate(prefab);
         }
     }
 }
