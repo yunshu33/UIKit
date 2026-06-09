@@ -87,6 +87,29 @@ Close(panel):
 | `HideAsync<T>()` | 隐藏弹窗（缓存） |
 | `CloseAsync<T>()` | 销毁弹窗 |
 
+### 面板自管理 (ShowSelf / HideSelf / CloseSelf)
+
+FullPanel 和 PopupPanel 均提供 Self 方法，面板内部可直接调：
+
+| 方法 | 说明 |
+|------|------|
+| `ShowSelf()` / `ShowSelfAsync()` | 显示自身（FullPanel 压栈，PopupPanel 走 PopupManager） |
+| `HideSelf()` / `HideSelfAsync()` | 隐藏自身 |
+| `CloseSelf()` / `CloseSelfAsync()` | 销毁自身 |
+
+```csharp
+public class MyPanel : FullPanel
+{
+    private void OnConfirm()
+    {
+        // 面板内部操作自身
+        HideSelf();         // 隐藏回池
+        // CloseSelf();     // 销毁
+        // ShowSelf();      // 重新显示
+    }
+}
+```
+
 ### SceneUIContext
 
 挂载到场景 GameObject，持有预置面板列表。Start 自动注册，OnDestroy 自动注销。
