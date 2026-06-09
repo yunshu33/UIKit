@@ -10,7 +10,7 @@ namespace VoyageForge.UIKit.Samples
     /// 示例 Toast 弹窗 — 继承 PopupPanel，不进栈，仅浮动显示。
     /// </summary>
     [RequireComponent(typeof(CanvasGroup))]
-    [PanelPath("ToastPopup")]
+    [PanelPath("UI/Samples/Resources/ToastPopup")]
     public class ToastPopup : PopupPanel
     {
         [SerializeField] private Text _messageText;

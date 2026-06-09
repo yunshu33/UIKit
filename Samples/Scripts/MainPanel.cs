@@ -6,7 +6,7 @@ using VoyageForge.UIKit.Runtime;
 namespace VoyageForge.UIKit.Samples
 {
     /// <summary> 主菜单面板 — FullPanel，可压栈导航。 </summary>
-    [PanelPath("MainPanel")]
+    [PanelPath("UI/Samples/Resources/MainPanel")]
     public  class MainPanel : FullPanel
     {
         private Button _settingsButton;

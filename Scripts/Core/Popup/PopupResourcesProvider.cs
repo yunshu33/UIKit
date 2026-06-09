@@ -27,7 +27,10 @@ namespace VoyageForge.UIKit.Runtime
 
         protected override BasePanel Instantiate(string path)
         {
-            var prefab = Resources.Load<BasePanel>(path);
+            var idx = path.LastIndexOf("Resources/");
+            var resPath = idx >= 0 ? path[(idx + 10)..] : path;
+
+            var prefab = Resources.Load<BasePanel>(resPath);
             if (prefab == null) return null;
             return Object.Instantiate(prefab);
         }
