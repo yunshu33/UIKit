@@ -6,8 +6,8 @@ using VoyageForge.UIKit.Runtime;
 namespace VoyageForge.UIKit.Samples
 {
     [RequireComponent(typeof(CanvasGroup))]
-    public [PanelPath("ConfirmDialog")]
-    class ConfirmDialog : FullPanel
+    [PanelPath("ConfirmDialog")]
+    public class ConfirmDialog : FullPanel
     {
         private Button _confirmButton;
 
