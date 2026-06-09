@@ -25,15 +25,15 @@ namespace VoyageForge.UIKit.Runtime
             }
 
             var path = PanelPathCache.GetPath<T>();
-            panel = await InstantiateAsync(path);
+            panel = await InstantiateAsync<T>(path);
             if (panel == null) return null;
 
             panel.gameObject.SetActive(false);
-            return panel as T;
+            return (T)panel;
         }
 
         /// <summary> 子类实现：根据路径异步创建实例。 </summary>
-        protected abstract UniTask<BasePanel> InstantiateAsync(string path);
+        protected abstract UniTask<T> InstantiateAsync<T>(string path) where T : BasePanel;
 
         public void Release(BasePanel panel)
         {

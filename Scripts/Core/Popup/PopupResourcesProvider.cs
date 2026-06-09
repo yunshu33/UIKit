@@ -27,7 +27,7 @@ namespace VoyageForge.UIKit.Runtime
             }
         }
 
-        protected override async UniTask<BasePanel> InstantiateAsync(string path)
+        protected override async UniTask<T> InstantiateAsync<T>(string path)
         {
             var idx = path.LastIndexOf("Resources/", StringComparison.Ordinal);
             var resPath = idx >= 0 ? path[(idx + 10)..] : path;
@@ -36,7 +36,7 @@ namespace VoyageForge.UIKit.Runtime
             await req;
             if (req.asset == null) return null;
             var instance = Object.Instantiate((GameObject)req.asset);
-            return instance.GetComponent<BasePanel>();
+            return instance.GetComponent<T>();
         }
     }
 }
