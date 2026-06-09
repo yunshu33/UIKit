@@ -73,7 +73,7 @@ namespace VoyageForge.UIKit.Runtime
         /// <summary> 显示 FullPanel（异步）。 </summary>
         public async UniTask<T> ShowAsync<T>() where T : FullPanel
         {
-            var panel = PanelProvider.Load<T>();
+            var panel = await PanelProvider.LoadAsync<T>();
             if (panel == null)
             {
                 Debug.LogError($"[UIManager] Show failed: {typeof(T).Name}");

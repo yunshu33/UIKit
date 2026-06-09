@@ -39,7 +39,7 @@ namespace VoyageForge.UIKit.Runtime
 
         public async UniTask<T> ShowAsync<T>() where T : PopupPanel
         {
-            var panel = _provider.Load<T>();
+            var panel = await _provider.LoadAsync<T>();
             if (panel == null) return null;
             return await ShowInternal(panel);
         }
