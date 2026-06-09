@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 using System.Collections.Generic;
 using Cysharp.Threading.Tasks;
@@ -19,6 +20,8 @@ namespace VoyageForge.UIKit.Runtime
         {
             UIManager.Instance.RegisterSceneContext(this).Forget();
         }
+
+        
 
         private void OnDestroy()
         {
