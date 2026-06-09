@@ -35,7 +35,8 @@ namespace VoyageForge.UIKit.Runtime
             var req = Resources.LoadAsync<GameObject>(resPath);
             await req;
             if (req.asset == null) return null;
-            return Object.Instantiate(req.asset).GetComponent<BasePanel>();
+            var instance = Object.Instantiate((GameObject)req.asset);
+            return instance.GetComponent<BasePanel>();
         }
     }
 }

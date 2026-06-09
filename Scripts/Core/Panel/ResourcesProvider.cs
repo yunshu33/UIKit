@@ -18,7 +18,8 @@ namespace VoyageForge.UIKit.Runtime
                 Debug.LogError($"[ResourcesProvider] Load failed: {path} → {resPath}");
                 return null;
             }
-            return Object.Instantiate(req.asset).GetComponent<BasePanel>();
+            var instance = Object.Instantiate((GameObject)req.asset);
+            return instance.GetComponent<BasePanel>();
         }
     }
 }
