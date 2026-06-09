@@ -1,6 +1,8 @@
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Text.RegularExpressions;
 using UnityEditor;
 using UnityEditor.UIElements;
@@ -14,7 +16,6 @@ namespace VoyageForge.UIKit.Editor
     {
         [SerializeField] private List<PanelPathEntry> _entries = new();
         private ListView _listView;
-        private string _filterGroup = "";
 
         [MenuItem("Tools/UIKit/Panel Path Window")]
         public static void Open() => GetWindow<PanelPathWindow>("Panel Path");
@@ -26,22 +27,12 @@ namespace VoyageForge.UIKit.Editor
         {
             var root = rootVisualElement;
 
-            // 拖放区
-            var dropZone = new VisualElement { style = { marginBottom = 4 } };
-            dropZone.RegisterCallback<DragUpdatedEvent>(OnDragUpdate);
-            dropZone.RegisterCallback<DragPerformEvent>(OnDragPerform);
-            var dropLabel = new Label("从 Project 拖入 BasePanel Prefab") { style = { unityFontStyleAndWeight = FontStyle.Bold } };
-            dropZone.Add(dropLabel);
-            root.Add(dropZone);
-
-            // 工具栏
             var toolbar = new Toolbar();
             toolbar.Add(new ToolbarButton(() => { _entries.Add(new PanelPathEntry()); _listView.Rebuild(); SaveEntries(); })
                 { text = "添加行" });
             toolbar.Add(new ToolbarButton(ApplyAll) { text = "全部应用" });
             root.Add(toolbar);
 
-            // 列表
             _listView = new ListView(_entries, 24, MakeItem, BindItem)
             {
                 selectionType = SelectionType.Multiple,
@@ -51,39 +42,24 @@ namespace VoyageForge.UIKit.Editor
             root.Add(_listView);
         }
 
-        // ---- 批量拖放 ----
-
-        private void OnDragUpdate(DragUpdatedEvent evt)
-        {
-            if (DragAndDrop.objectReferences.OfType<GameObject>().Any(g => g.GetComponent<BasePanel>() != null))
-                DragAndDrop.visualMode = DragAndDropVisualMode.Copy;
-        }
-
-        private void OnDragPerform(DragPerformEvent evt)
-        {
-            foreach (var go in DragAndDrop.objectReferences.OfType<GameObject>())
-            {
-                if (go.GetComponent<BasePanel>() == null) continue;
-                if (string.IsNullOrEmpty(AssetDatabase.GetAssetPath(go))) continue;
-                if (_entries.Any(e => e.Prefab == go)) continue;
-                _entries.Add(new PanelPathEntry { Prefab = go });
-            }
-            _listView.Rebuild();
-            SaveEntries();
-        }
-
-        // ---- 行构建 ----
+        // ---- 行 ----
 
         private VisualElement MakeItem()
         {
             var row = new VisualElement { style = { flexDirection = FlexDirection.Row, alignItems = Align.Center } };
 
             var prefabField = new ObjectField { objectType = typeof(GameObject), allowSceneObjects = false, name = "prefab" };
-            prefabField.RegisterValueChangedCallback(OnPrefabChanged);
+            prefabField.RegisterValueChangedCallback(evt =>
+            {
+                var go = evt.newValue as GameObject;
+                if (go == null) return;
+                if (go.GetComponent<BasePanel>() == null || string.IsNullOrEmpty(AssetDatabase.GetAssetPath(go)))
+                    (evt.target as ObjectField).value = null;
+            });
             prefabField.style.flexGrow = 1;
             row.Add(prefabField);
 
-            var statusLabel = new Label { name = "status", style = { width = 24, unityTextAlign = TextAnchor.MiddleCenter } };
+            var statusLabel = new Label { name = "status", style = { unityTextAlign = TextAnchor.MiddleCenter } };
             row.Add(statusLabel);
 
             var applyBtn = new Button { text = "应用", name = "apply", style = { width = 48 } };
@@ -101,21 +77,26 @@ namespace VoyageForge.UIKit.Editor
         {
             var entry = _entries[i];
             el.Q<ObjectField>("prefab").SetValueWithoutNotify(entry.Prefab);
-            el.Q<Label>("status").text = entry.Applied ? "✓" : "○";
-            el.Q<Label>("status").style.color = entry.Applied ? new Color(0.2f, 0.7f, 0.2f) : Color.gray;
+
+            var label = el.Q<Label>("status");
+            if (entry.Prefab != null && entry.Prefab.GetComponent<BasePanel>() != null)
+            {
+                var type = entry.Prefab.GetComponent<BasePanel>().GetType();
+                var expected = GetResourcesPath(entry.Prefab);
+                var current = type.GetCustomAttribute<PanelPathAttribute>()?.Path;
+
+                if (current == expected)      { label.text = "✓"; label.tooltip = current; }
+                else if (current != null)      { label.text = "⚠"; label.tooltip = $"{current} → {expected}"; }
+                else if (expected != null)      { label.text = "+"; label.tooltip = $"添加: {expected}"; }
+                else                           { label.text = "·"; label.tooltip = "不在 Resources 下"; }
+            }
+            else { label.text = "-"; label.tooltip = ""; }
+
             el.Q<Button>("apply").userData = i;
             el.Q<Button>("remove").userData = i;
         }
 
-        private static void OnPrefabChanged(ChangeEvent<Object> evt)
-        {
-            var go = evt.newValue as GameObject;
-            if (go == null) return;
-            if (go.GetComponent<BasePanel>() == null || string.IsNullOrEmpty(AssetDatabase.GetAssetPath(go)))
-                (evt.target as ObjectField).value = null;
-        }
-
-        // ---- 应用逻辑 ----
+        // ---- 应用 ----
 
         private void ApplySingle(int i)
         {
@@ -126,16 +107,9 @@ namespace VoyageForge.UIKit.Editor
             if (panel != null && path != null)
             {
                 ApplyAttribute(panel.GetType(), path);
-                e.Applied = true;
                 _listView.Rebuild();
                 SaveEntries();
             }
-        }
-
-        private void ApplySelected()
-        {
-            foreach (var i in _listView.selectedIndices)
-                ApplySingle(i);
         }
 
         private void ApplyAll()
@@ -148,7 +122,6 @@ namespace VoyageForge.UIKit.Editor
                 var path = GetResourcesPath(e.Prefab);
                 if (panel == null || path == null) continue;
                 ApplyAttribute(panel.GetType(), path);
-                e.Applied = true;
             }
             _listView.Rebuild();
             SaveEntries();
@@ -163,10 +136,10 @@ namespace VoyageForge.UIKit.Editor
             _entries.Clear();
             foreach (var guid in guids.Items)
             {
-                var path = AssetDatabase.GUIDToAssetPath(guid);
-                var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(path);
+                var assetPath = AssetDatabase.GUIDToAssetPath(guid);
+                var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(assetPath);
                 if (prefab != null && prefab.GetComponent<BasePanel>() != null)
-                    _entries.Add(new PanelPathEntry { Prefab = prefab, Applied = true });
+                    _entries.Add(new PanelPathEntry { Prefab = prefab });
             }
         }
 
@@ -191,10 +164,7 @@ namespace VoyageForge.UIKit.Editor
             return match.Success ? match.Groups[1].Value : null;
         }
 
-        private static string GetGroup(string resPath) =>
-            resPath?.Contains('/') == true ? resPath.Substring(0, resPath.LastIndexOf('/')) : "/";
-
-        private static void ApplyAttribute(System.Type type, string resPath)
+        private static void ApplyAttribute(Type type, string resPath)
         {
             var guids = AssetDatabase.FindAssets($"{type.Name} t:MonoScript");
             string scriptPath = null;
@@ -208,18 +178,20 @@ namespace VoyageForge.UIKit.Editor
             var content = File.ReadAllText(scriptPath);
             var className = type.Name;
             var attr = $"[PanelPath(\"{resPath}\")]";
+
             if (content.Contains(attr)) return;
 
+            // 替换或插入
             content = Regex.Replace(content, @"\[PanelPath\([^)]*\)\]\s*\n\s*", "");
-            var pattern = $"(class\\s+{className}\\s*:)";
-            content = Regex.Replace(content, pattern, $"{attr}\n    class {className} :");
+            content = Regex.Replace(content, $"(class\\s+{className}\\s*:)",
+                $"{attr}\n    class {className} :");
 
             File.WriteAllText(scriptPath, content);
             AssetDatabase.Refresh();
             Debug.Log($"[UIKit] PanelPath applied: {className} → {resPath}");
         }
 
-        [System.Serializable] private class GuidList { public List<string> Items = new(); }
-        [System.Serializable] private class PanelPathEntry { public GameObject Prefab; public bool Applied; }
+        [Serializable] private class GuidList { public List<string> Items = new(); }
+        [Serializable] private class PanelPathEntry { public GameObject Prefab; }
     }
 }
