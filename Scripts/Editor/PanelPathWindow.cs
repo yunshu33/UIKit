@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using System.Text.RegularExpressions;
 using UnityEditor;
@@ -10,7 +11,7 @@ namespace VoyageForge.UIKit.Editor
 {
     public class PanelPathWindow : EditorWindow
     {
-        [SerializeField] private List<PanelPathEntry> _entries = new();
+        [SerializeField] private List<GameObject> _prefabs = new();
         private SerializedObject _so;
         private Vector2 _scroll;
 
@@ -22,7 +23,7 @@ namespace VoyageForge.UIKit.Editor
         private void OnGUI()
         {
             _so.Update();
-            var entriesProp = _so.FindProperty("_entries");
+            var entriesProp = _so.FindProperty("_prefabs");
 
             EditorGUILayout.PropertyField(entriesProp, new GUIContent("Prefab 列表"), true);
             _so.ApplyModifiedProperties();
@@ -34,12 +35,12 @@ namespace VoyageForge.UIKit.Editor
 
         private void ApplyAll()
         {
-            foreach (var e in _entries)
+            foreach (var prefab in _prefabs)
             {
-                if (e.Prefab == null) continue;
-                var panel = e.Prefab.GetComponent<BasePanel>();
+                if (prefab == null) continue;
+                var panel = prefab.GetComponent<BasePanel>();
                 if (panel == null) continue;
-                var path = GetPath(e.Prefab);
+                var path = GetPath(prefab);
                 if (string.IsNullOrEmpty(path)) continue;
                 WriteAttribute(panel.GetType(), path);
             }
@@ -69,18 +70,18 @@ namespace VoyageForge.UIKit.Editor
             var attr = $"[PanelPath(\"{path}\")]";
             if (content.Contains(attr)) return;
 
-            content = Regex.Replace(content, @"\[PanelPath\([^)]*\)\]\s*\n\s*", "");
-            content = Regex.Replace(content, $"(class\\s+{type.Name}\\s*:)",
-                $"{attr}\n    class {type.Name} :");
-
-            File.WriteAllText(scriptPath, content);
+            var lines = new List<string>(content.Split('\n'));
+            lines.RemoveAll(l => l.TrimStart().StartsWith("[PanelPath("));
+            for (int i = 0; i < lines.Count; i++)
+            {
+                if (!lines[i].Contains($"class {type.Name}")) continue;
+                var indent = new string(' ', lines[i].Length - lines[i].TrimStart().Length);
+                lines.Insert(i, indent + attr);
+                break;
+            }
+            File.WriteAllText(scriptPath, string.Join("\n", lines));
             Debug.Log($"[UIKit] PanelPath: {type.Name} → {path}");
         }
 
-        [System.Serializable]
-        private class PanelPathEntry
-        {
-            public GameObject Prefab;
-        }
     }
 }
