@@ -26,6 +26,7 @@ namespace VoyageForge.UIKit.Runtime
 
             var path = PanelPathCache.GetPath<T>();
             panel = await InstantiateAsync<T>(path);
+            
             if (panel == null) return null;
 
             panel.gameObject.SetActive(false);

@@ -15,7 +15,7 @@ namespace VoyageForge.UIKit.Editor
         private SerializedObject _so;
         private Vector2 _scroll;
 
-        [MenuItem("Tools/UIKit/Panel Path Window")]
+        [MenuItem("VoyageForge/UIKit/Panel Path Window")]
         public static void Open() => GetWindow<PanelPathWindow>("Panel Path");
 
         private void OnEnable() => _so = new SerializedObject(this);
@@ -44,15 +44,14 @@ namespace VoyageForge.UIKit.Editor
                 if (string.IsNullOrEmpty(path)) continue;
                 WriteAttribute(panel.GetType(), path);
             }
+
             AssetDatabase.Refresh();
             Repaint();
         }
 
         private static string GetPath(GameObject prefab)
         {
-            // Assets/xxx/yyy/PrefabName.prefab → xxx/yyy/PrefabName
-            var p = AssetDatabase.GetAssetPath(prefab);
-            return p.StartsWith("Assets/") ? p[7..^7] : p; // strip "Assets/" and ".prefab"
+            return Path.ChangeExtension(AssetDatabase.GetAssetPath(prefab), null);
         }
 
         private static void WriteAttribute(System.Type type, string path)
@@ -62,8 +61,13 @@ namespace VoyageForge.UIKit.Editor
             foreach (var g in guids)
             {
                 var p = AssetDatabase.GUIDToAssetPath(g);
-                if (p.EndsWith($"/{type.Name}.cs")) { scriptPath = p; break; }
+                if (p.EndsWith($"/{type.Name}.cs"))
+                {
+                    scriptPath = p;
+                    break;
+                }
             }
+
             if (scriptPath == null) return;
 
             var content = File.ReadAllText(scriptPath);
@@ -79,9 +83,9 @@ namespace VoyageForge.UIKit.Editor
                 lines.Insert(i, indent + attr);
                 break;
             }
+
             File.WriteAllText(scriptPath, string.Join("\n", lines));
             Debug.Log($"[UIKit] PanelPath: {type.Name} → {path}");
         }
-
     }
 }

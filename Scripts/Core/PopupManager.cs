@@ -2,13 +2,14 @@ using System;
 using System.Collections.Generic;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
+using Object = UnityEngine.Object;
 
 namespace VoyageForge.UIKit.Runtime
 {
     public class PopupManager : IPopupManager
     {
         private readonly Dictionary<Type, PopupPanel> _active = new();
-        
+
         private IPopupProvider _provider = new PopupResourcesProvider();
 
         public IPopupProvider Provider
@@ -53,10 +54,9 @@ namespace VoyageForge.UIKit.Runtime
 
             if (_active.TryGetValue(type, out var existing) && existing == panel)
             {
-                await existing.Show();
                 return panel;
             }
-
+            
             panel.transform.SetParent(_provider.Root, false);
             _active[type] = panel;
             await panel.Show();
@@ -81,7 +81,12 @@ namespace VoyageForge.UIKit.Runtime
 
             if (_active.TryGetValue(type, out var active) && active == panel)
                 _active.Remove(type);
-
+            else
+            {
+                Object.Destroy(panel.gameObject);
+                return;
+            }
+               
             await panel.Hide();
             _provider.Release(panel);
         }
@@ -101,7 +106,8 @@ namespace VoyageForge.UIKit.Runtime
 
             if (_active.TryGetValue(type, out var active) && active == panel)
                 _active.Remove(type);
-
+            else
+                return;
             await panel.Close();
         }
 

@@ -12,18 +12,18 @@ namespace VoyageForge.UIKit.Runtime
         
         private SceneUIContext _sceneContext;
 
-        private readonly PopupManager _popupManager = new();
-        public PopupManager PopupManager => _popupManager;
+        private readonly PopupManager _popup = new();
+        public static PopupManager Popup => Instance._popup;
 
         private IPanelProvider _provider = new ResourcesProvider();
 
-        public IPanelProvider PanelProvider
+        public static IPanelProvider PanelProvider
         {
-            get => _provider;
+            get => Instance._provider;
             set
             {
-                if (_provider != null) value.Import(_provider.Export());
-                _provider = value;
+                if (Instance._provider != null) value.Import(Instance._provider.Export());
+                Instance._provider = value;
             }
         }
 

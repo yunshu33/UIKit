@@ -6,11 +6,11 @@ using Object = UnityEngine.Object;
 
 namespace VoyageForge.UIKit.Runtime
 {
-    public class PopupResourcesProvider : PanelProviderBase, IPopupProvider
+    public class PopupResourcesProvider : PopupProviderBase
     {
         private Transform _root;
 
-        public Transform Root
+        public override Transform Root
         {
             get
             {

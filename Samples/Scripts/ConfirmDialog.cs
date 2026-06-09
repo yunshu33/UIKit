@@ -40,8 +40,8 @@ namespace VoyageForge.UIKit.Samples
             Debug.Log("[ConfirmDialog] 确认");
             await UIManager.Instance.HideAsync();
 
-            var popup = await UIManager.Instance
-                .PopupManager
+            var popup = await UIManager
+                .Popup
                 .ShowAsync<ToastPopup>();
         }
 
