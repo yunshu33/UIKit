@@ -161,8 +161,11 @@ namespace VoyageForge.UIKit.Editor
         private static string GetResourcesPath(GameObject prefab)
         {
             var assetPath = AssetDatabase.GetAssetPath(prefab);
+            // Resources 下: 取相对路径
             var match = Regex.Match(assetPath, @"Resources/(.+)\.prefab$");
-            return match.Success ? match.Groups[1].Value : null;
+            if (match.Success) return match.Groups[1].Value;
+            // 否则 fallback: Assets/xxx/prefabName
+            return Path.GetFileNameWithoutExtension(assetPath);
         }
 
         private static void ApplyAttribute(Type type, string resPath)
