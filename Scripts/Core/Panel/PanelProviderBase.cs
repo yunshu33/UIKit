@@ -1,19 +1,20 @@
 using System;
 using System.Collections.Generic;
+using Cysharp.Threading.Tasks;
 using UnityEngine;
 
 namespace VoyageForge.UIKit.Runtime
 {
     /// <summary>
-    /// Provider 基类 — 缓存/PanelPath/Import/Export 统一处理。
-    /// 子类只需实现 Instantiate(string path)，返回实例化后的 BasePanel。
+    /// Provider 基类 — 缓存/PanelPath 统一处理。
+    /// 子类只需实现 Instantiate(string path)。
     /// </summary>
     public abstract class PanelProviderBase : IPanelProvider
     {
         private readonly Dictionary<Type, BasePanel> _cache = new();
         public IReadOnlyDictionary<Type, BasePanel> Cache => _cache;
 
-        public T Load<T>() where T : BasePanel
+        public virtual async UniTask<T> LoadAsync<T>() where T : BasePanel
         {
             var type = typeof(T);
 
@@ -24,15 +25,15 @@ namespace VoyageForge.UIKit.Runtime
             }
 
             var path = PanelPathCache.GetPath<T>();
-            var instance = Instantiate(path);
-            if (instance == null) return null;
+            panel = await InstantiateAsync(path);
+            if (panel == null) return null;
 
-            instance.gameObject.SetActive(false);
-            return instance as T;
+            panel.gameObject.SetActive(false);
+            return panel as T;
         }
 
-        /// <summary> 子类实现：根据路径创建实例。 </summary>
-        protected abstract BasePanel Instantiate(string path);
+        /// <summary> 子类实现：根据路径异步创建实例。 </summary>
+        protected abstract UniTask<BasePanel> InstantiateAsync(string path);
 
         public void Release(BasePanel panel)
         {

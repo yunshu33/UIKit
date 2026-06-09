@@ -12,14 +12,11 @@ namespace VoyageForge.UIKit.Runtime
     {
         IReadOnlyDictionary<Type, BasePanel> Cache { get; }
 
-        /// <summary> 加载 Panel（同步）。 </summary>
-        T Load<T>() where T : BasePanel;
+    
 
         /// <summary> 加载 Panel（异步）。默认委托到 Load。 </summary>
-        UniTask<T> LoadAsync<T>() where T : BasePanel
-        {
-            return UniTask.FromResult(Load<T>());
-        }
+        UniTask<T> LoadAsync<T>() where T : BasePanel;
+       
 
         /// <summary> 回收 Panel。 </summary>
         void Release(BasePanel panel);
