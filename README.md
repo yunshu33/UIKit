@@ -7,9 +7,8 @@
 ```
 UIManager (MonoSingleton)
   ├── ViewStack           ← FullPanel 导航栈（Pause/Resume）
-  ├── PopupManager        ← PopupPanel 弹窗管理（Show/Hide/Close）
-  ├── PanelProvider       ← FullPanel 工厂（可热替换）
-  └── IPopupProvider      ← Popup 工厂（含 DontDestroyOnLoad Root Canvas）
+  ├── Popup               ← PopupPanel 弹窗管理（Show/Hide/Close，静态）
+  └── PanelProvider       ← FullPanel 工厂（静态，可热替换）
 ```
 
 ## 面板类型
@@ -17,7 +16,7 @@ UIManager (MonoSingleton)
 | 类型 | 基类 | 压栈 | Pause/Resume | 打开方式 |
 |------|------|------|-------------|---------|
 | 全屏面板 | `FullPanel` | 是 | 支持 | `UIManager.Show<T>()` |
-| 弹窗 | `PopupPanel` | 否 | 无 | `PopupManager.ShowAsync<T>()` |
+| 弹窗 | `PopupPanel` | 否 | 无 | `UIManager.Popup.ShowAsync<T>()` |
 
 ---
 
@@ -74,9 +73,10 @@ Close(panel):
 | `CloseAsync(BasePanel)` | 销毁面板 |
 | `GetActivePanel()` | 获取栈顶 |
 | `OnInput(key, down)` | 输入路由 |
-| `PanelProvider` | 可读写，设值时自动迁移缓存 |
+| `PanelProvider` | 静态，可读写，设值时自动迁移缓存 |
+| `Popup` | 静态 PopupManager 实例 |
 
-### PopupManager
+### UIManager.Popup
 
 | 方法 | 说明 |
 |------|------|
@@ -136,7 +136,7 @@ await UIManager.Instance.ShowAsync<ShopPanel>();
 await UIManager.Instance.HideAsync();  // 返回
 
 // 弹窗
-await UIManager.Instance.PopupManager.ShowAsync<ToastPopup>();
+await UIManager.Popup.ShowAsync<ToastPopup>();
 ```
 
 ---
@@ -145,9 +145,11 @@ await UIManager.Instance.PopupManager.ShowAsync<ToastPopup>();
 
 | 类 | 说明 |
 |----|------|
-| `PanelProviderBase` | 抽象基类，子类只需实现 `Instantiate(path)` |
-| `ResourcesProvider` | 默认实现，`Resources.Load` |
-| 自定义 | 继承 `PanelProviderBase`，15 行写 AB/Addressables 加载器 |
+| `PanelProviderBase` | FullPanel 抽象基类，子类只需实现 `Instantiate(path)` |
+| `ResourcesProvider` | FullPanel 默认实现，`Resources.Load` |
+| `PopupProviderBase` | Popup 抽象基类，继承 `PanelProviderBase`，管理 Root Canvas |
+| `PopupResourcesProvider` | Popup 默认实现，继承 `PopupProviderBase` |
+| 自定义 | 继承对应基类，15 行写 AB/Addressables 加载器 |
 
 ```csharp
 public class AddressablesProvider : PanelProviderBase
@@ -160,7 +162,7 @@ public class AddressablesProvider : PanelProviderBase
 }
 
 // 热替换
-UIManager.Instance.PanelProvider = new AddressablesProvider();
+UIManager.PanelProvider = new AddressablesProvider();
 ```
 
 ### [PanelPath]
@@ -172,7 +174,7 @@ UIManager.Instance.PanelProvider = new AddressablesProvider();
 public class ShopPanel : FullPanel { }
 ```
 
-**Tools > UIKit > Panel Path Window** — 拖入 prefab，一键生成 `[PanelPath]`。
+**VoyageForge > UIKit > Panel Path Window** — 拖入 prefab，一键生成 `[PanelPath]`。
 
 ---
 
