@@ -80,9 +80,10 @@ Close(panel):
 
 | 方法 | 说明 |
 |------|------|
-| `ShowAsync<T>()` | 显示弹窗 |
-| `HideAsync<T>()` | 隐藏弹窗（缓存） |
-| `CloseAsync<T>()` | 销毁弹窗 |
+| `ShowAsync<T>()` | 显示弹窗（泛型加载） |
+| `ShowAsync(PopupPanel)` | 显示已有弹窗实例 |
+| `HideAsync(PopupPanel)` | 隐藏弹窗（回池缓存） |
+| `CloseAsync(PopupPanel)` | 销毁弹窗 |
 
 ### 面板自管理 (ShowSelf / HideSelf / CloseSelf)
 
