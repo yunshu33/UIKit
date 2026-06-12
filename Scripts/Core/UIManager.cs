@@ -8,7 +8,7 @@ namespace VoyageForge.UIKit.Runtime
 {
     public class UIManager : MonoSingleton<UIManager>
     {
-        private readonly ViewStack _stack = new();
+        [SerializeField] private ViewStack _stack = new();
 
         private SceneUIContext _sceneContext;
 
@@ -67,17 +67,37 @@ namespace VoyageForge.UIKit.Runtime
 
         // ---- 公开 API ----
 
+        /// <summary>
+        /// 获得一个面板
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <returns></returns>
+        /// <exception cref="NotImplementedException"></exception>
+        public async UniTask<T> GetPanelAsync<T>() where T : BasePanel
+        {
+            throw new NotImplementedException();
+        }
+
+
         /// <summary> 显示 FullPanel（异步）。 </summary>
         public async UniTask<T> ShowAsync<T>() where T : FullPanel
         {
             var panel = await PanelProvider.LoadAsync<T>();
+
             if (panel == null)
             {
                 Debug.LogError($"[UIManager] Show failed: {typeof(T).Name}");
                 return null;
             }
 
+            //Full window 为唯一 如果多次调用判断是不是在顶层 如果是 直接返回
+            var peek = _stack.Peek();
+
+            if (_stack.Peek().GetType() == panel.GetType())
+                return peek as T;
+
             await _stack.Push(panel);
+
             return panel;
         }
 
@@ -91,6 +111,7 @@ namespace VoyageForge.UIKit.Runtime
         /// <summary> 隐藏栈顶（异步）。 </summary>
         public async UniTask HideAsync()
         {
+            //TODO: 需要先判断面板是否还在站内 HideAsync 同理
             PanelProvider.Release(await _stack.Pop());
         }
 

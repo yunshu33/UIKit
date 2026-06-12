@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Cysharp.Threading.Tasks;
+using UnityEngine;
 
 namespace VoyageForge.UIKit.Runtime
 {
@@ -9,9 +10,10 @@ namespace VoyageForge.UIKit.Runtime
     /// Push: Pause 当前 → Show 新面板 → 入栈
     /// Pop:  Hide 栈顶 → 出栈 → Resume 下层
     /// </summary>
+    [Serializable]
     public class ViewStack : IDisposable
     {
-        private readonly List<FullPanel> _panels = new();
+        [SerializeField] private List<FullPanel> _panels = new();
 
         public event Action<FullPanel> TopPanelChanged;
         public event Action<int> CountChanged;
@@ -30,8 +32,29 @@ namespace VoyageForge.UIKit.Runtime
         /// <summary> 推入：暂停当前 → 入栈 → Show。 </summary>
         public async UniTask Push(FullPanel panel)
         {
+            //判断panel 是不是已经在栈内 ，如果是 则在栈顶 重新压入一次
+            var t = panel.GetType();
+
             if (_panels.Count > 0)
+            {
+                //如果栈顶 就是他自身 则直接 跳过
+                if (t == Peek().GetType())
+                {
+                    return;
+                }
+                
                 await _panels[^1].Pause();
+               
+            }
+
+            foreach (var p in _panels)
+            {
+                if (p.GetType() == t)
+                {
+                    panel = p;
+                    break;
+                }
+            }
 
             _panels.Add(panel);
             NotifyChanged();
@@ -52,14 +75,14 @@ namespace VoyageForge.UIKit.Runtime
             if (_panels.Count > 0)
             {
                 var last = _panels[^1];
-                
+
                 await last.Resume();
             }
-               
+
 
             return exiting;
         }
-        
+
         private void NotifyChanged()
         {
             CountChanged?.Invoke(_panels.Count);
