@@ -8,8 +8,7 @@ namespace VoyageForge.UIKit.Runtime
 {
     public class PopupResourcesProvider : PopupProviderBase
     {
-        private Transform _root;
-
+      
         public override Transform Root
         {
             get
