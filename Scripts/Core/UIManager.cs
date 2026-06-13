@@ -67,17 +67,7 @@ namespace VoyageForge.UIKit.Runtime
 
         // ---- 公开 API ----
 
-        /// <summary>
-        /// 获得一个面板
-        /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <returns></returns>
-        /// <exception cref="NotImplementedException"></exception>
-        public async UniTask<T> GetPanelAsync<T>() where T : BasePanel
-        {
-            throw new NotImplementedException();
-        }
-
+        
 
         /// <summary> 显示 FullPanel（异步）。 </summary>
         public async UniTask<T> ShowAsync<T>() where T : FullPanel
