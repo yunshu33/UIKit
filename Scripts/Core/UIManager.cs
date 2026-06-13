@@ -90,46 +90,42 @@ namespace VoyageForge.UIKit.Runtime
                 return null;
             }
 
-            //Full window 为唯一 如果多次调用判断是不是在顶层 如果是 直接返回
-            var peek = _stack.Peek();
-
-            if (_stack.Peek().GetType() == panel.GetType())
-                return peek as T;
-
-            await _stack.Push(panel);
-
-            return panel;
+            // ABB/ABA 防护由 ViewStack.Push 内部处理
+            return (T)await ShowAsync(panel);
         }
 
         /// <summary> 显示已有 FullPanel 实例（异步）。 </summary>
-        public async UniTask ShowAsync(FullPanel panel)
+        public async UniTask<FullPanel> ShowAsync(FullPanel panel)
         {
-            if (panel == null) return;
+            if (panel == null) return null;
             await _stack.Push(panel);
+            return panel;
         }
 
         /// <summary> 隐藏栈顶（异步）。 </summary>
-        public async UniTask HideAsync()
+        public async UniTask<FullPanel> HideAsync()
         {
-            //TODO: 需要先判断面板是否还在站内 HideAsync 同理
-            PanelProvider.Release(await _stack.Pop());
+            var panel = await _stack.Pop();
+            PanelProvider.Release(panel);
+            return panel;
         }
 
         /// <summary> 隐藏指定 FullPanel（异步）。 </summary>
-        public async UniTask HideAsync(FullPanel panel)
+        public async UniTask<FullPanel> HideAsync(FullPanel panel)
         {
             var top = _stack.Peek();
 
             if (top == panel)
             {
-                await HideAsync();
+                return await HideAsync();
             }
             else
             {
                 await panel.Hide();
-                await top.Resume();
+                if (top != null) await top.Resume();
 
                 PanelProvider.Register(panel);
+                return panel;
             }
         }
 

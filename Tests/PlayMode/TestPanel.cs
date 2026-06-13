@@ -69,16 +69,22 @@ namespace VoyageForge.UIKit.Tests
     }
 
     /// <summary>
-    /// 测试用 FullPanel A — 与 TestFullPanelB 类型不同，用于避开 Provider 同 key 缓存覆盖。
+    /// 测试用 FullPanel A — 带计数器的替代类型，用于 ABA/ABB 测试。
     /// </summary>
     public class TestFullPanelA : FullPanel
     {
-        protected override UniTask OnCreate() => UniTask.CompletedTask;
-        protected override UniTask OnShow()   => UniTask.CompletedTask;
-        protected override UniTask OnHide()   => UniTask.CompletedTask;
+        public int OnCreateCount;
+        public int OnShowCount;
+        public int OnHideCount;
+        public int OnPauseCount;
+        public int OnResumeCount;
+
+        protected override UniTask OnCreate() { OnCreateCount++; return UniTask.CompletedTask; }
+        protected override UniTask OnShow()   { OnShowCount++;   return UniTask.CompletedTask; }
+        protected override UniTask OnHide()   { OnHideCount++;   return UniTask.CompletedTask; }
         protected override UniTask OnClose()  => UniTask.CompletedTask;
-        protected override UniTask OnPause()  => UniTask.CompletedTask;
-        protected override UniTask OnResume() => UniTask.CompletedTask;
+        protected override UniTask OnPause()  { OnPauseCount++;  return UniTask.CompletedTask; }
+        protected override UniTask OnResume() { OnResumeCount++; return UniTask.CompletedTask; }
     }
 
     /// <summary>
@@ -86,12 +92,18 @@ namespace VoyageForge.UIKit.Tests
     /// </summary>
     public class TestFullPanelB : FullPanel
     {
-        protected override UniTask OnCreate() => UniTask.CompletedTask;
-        protected override UniTask OnShow()   => UniTask.CompletedTask;
-        protected override UniTask OnHide()   => UniTask.CompletedTask;
+        public int OnCreateCount;
+        public int OnShowCount;
+        public int OnHideCount;
+        public int OnPauseCount;
+        public int OnResumeCount;
+
+        protected override UniTask OnCreate() { OnCreateCount++; return UniTask.CompletedTask; }
+        protected override UniTask OnShow()   { OnShowCount++;   return UniTask.CompletedTask; }
+        protected override UniTask OnHide()   { OnHideCount++;   return UniTask.CompletedTask; }
         protected override UniTask OnClose()  => UniTask.CompletedTask;
-        protected override UniTask OnPause()  => UniTask.CompletedTask;
-        protected override UniTask OnResume() => UniTask.CompletedTask;
+        protected override UniTask OnPause()  { OnPauseCount++;  return UniTask.CompletedTask; }
+        protected override UniTask OnResume() { OnResumeCount++; return UniTask.CompletedTask; }
     }
 
     /// <summary>

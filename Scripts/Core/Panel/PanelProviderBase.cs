@@ -12,6 +12,7 @@ namespace VoyageForge.UIKit.Runtime
     public abstract class PanelProviderBase : IPanelProvider
     {
         private readonly Dictionary<Type, BasePanel> _cache = new();
+        private readonly Dictionary<Type, UniTaskCompletionSource<BasePanel>> _pendingTcs = new();
         public IReadOnlyDictionary<Type, BasePanel> Cache => _cache;
 
         public virtual async UniTask<T> LoadAsync<T>() where T : BasePanel
@@ -24,13 +25,40 @@ namespace VoyageForge.UIKit.Runtime
                 return panel as T;
             }
 
-            var path = PanelPathCache.GetPath<T>();
-            panel = await InstantiateAsync<T>(path);
-            
-            if (panel == null) return null;
+            // 已有飞行中的加载，复用同一个任务，防止并发创建多个实例
+            if (_pendingTcs.TryGetValue(type, out var existingTcs))
+            {
+                var waited = await existingTcs.Task;
+                return waited as T;
+            }
 
-            panel.gameObject.SetActive(false);
-            return (T)panel;
+            var tcs = new UniTaskCompletionSource<BasePanel>();
+            _pendingTcs[type] = tcs;
+
+            try
+            {
+                var path = PanelPathCache.GetPath<T>();
+                var loaded = await InstantiateAsync<T>(path);
+
+                if (loaded == null)
+                {
+                    tcs.TrySetResult(null);
+                    return null;
+                }
+
+                loaded.gameObject.SetActive(false);
+                tcs.TrySetResult(loaded);
+                return (T)(BasePanel)loaded;
+            }
+            catch (Exception ex)
+            {
+                tcs.TrySetException(ex);
+                throw;
+            }
+            finally
+            {
+                _pendingTcs.Remove(type);
+            }
         }
 
         /// <summary> 子类实现：根据路径异步创建实例。 </summary>

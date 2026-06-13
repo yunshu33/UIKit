@@ -32,28 +32,25 @@ namespace VoyageForge.UIKit.Runtime
         /// <summary> 推入：暂停当前 → 入栈 → Show。 </summary>
         public async UniTask Push(FullPanel panel)
         {
-            //判断panel 是不是已经在栈内 ，如果是 则在栈顶 重新压入一次
             var t = panel.GetType();
 
             if (_panels.Count > 0)
             {
-                //如果栈顶 就是他自身 则直接 跳过
+                // ABB: 栈顶同类型 → 跳过
                 if (t == Peek().GetType())
-                {
                     return;
-                }
-                
-                await _panels[^1].Pause();
-               
-            }
 
-            foreach (var p in _panels)
-            {
-                if (p.GetType() == t)
+                // ABA: 栈内已有同类型（不在栈顶）→ 报错
+                for (var i = 0; i < _panels.Count - 1; i++)
                 {
-                    panel = p;
-                    break;
+                    if (_panels[i].GetType() == t)
+                    {
+                        Debug.LogError($"[ViewStack] 不允许 ABA: {t.Name} 已在栈中，不能重复 Push");
+                        return;
+                    }
                 }
+
+                await _panels[^1].Pause();
             }
 
             _panels.Add(panel);

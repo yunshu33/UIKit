@@ -115,5 +115,48 @@ namespace VoyageForge.UIKit.Tests
             Assert.IsTrue(newProvider.TryGet(typeof(TestFullPanel), out var cached));
             Assert.AreSame(panel, cached);
         });
+
+        /// <summary>
+        /// HideAsync() 返回被 Pop 的栈顶面板实例。
+        /// </summary>
+        [UnityTest]
+        public IEnumerator HideAsync_ReturnsPoppedPanel() => UniTask.ToCoroutine(async () =>
+        {
+            _go1 = new GameObject("TestPanel");
+            var panel = _go1.AddComponent<TestFullPanel>();
+            _provider.Register(panel);
+
+            await UIManager.Instance.ShowAsync<TestFullPanel>();
+            var result = await UIManager.Instance.HideAsync();
+
+            Assert.IsNotNull(result);
+            Assert.AreSame(panel, result);
+        });
+
+        /// <summary>
+        /// ABA: Show<A> → Show<B> → 重新注册 A → Show<A> → Push 检测 ABA 并拒绝，栈保持 [A, B]。
+        /// </summary>
+        [UnityTest]
+        public IEnumerator ShowAsync_ABA_Rejected() => UniTask.ToCoroutine(async () =>
+        {
+            _go1 = new GameObject("PanelA");
+            _go2 = new GameObject("PanelB");
+            var panelA = _go1.AddComponent<TestFullPanel>();
+            var panelB = _go2.AddComponent<TestFullPanelA>();
+
+            _provider.Register(panelA);
+            _provider.Register(panelB);
+
+            await UIManager.Instance.ShowAsync<TestFullPanel>();   // [A]
+            await UIManager.Instance.ShowAsync<TestFullPanelA>();   // [A, B]
+
+            // 重新注册 A 到 Provider（模拟 A 在缓存中可用）
+            _provider.Register(panelA);
+            LogAssert.Expect(LogType.Error, "[ViewStack] 不允许 ABA: TestFullPanel 已在栈中，不能重复 Push");
+            var resultA2 = await UIManager.Instance.ShowAsync<TestFullPanel>(); // ABA → Push 报错
+
+            Assert.IsNotNull(resultA2, "LoadAsync 成功返回 panel，但 Push 因 ABA 拒绝压栈");
+            Assert.AreEqual(BasePanel.PanelState.Active, panelB.State, "B 仍在栈顶 Active");
+        });
     }
 }

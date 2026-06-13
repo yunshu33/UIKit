@@ -33,6 +33,8 @@ Inactive → Active ↔ Paused (仅 FullPanel)
 
 ```
 Show<T> → ViewStack.Push:
+  ├── 栈顶同类型 (ABB) → 跳过，防止重复压栈
+  ├── 栈内已有同类型 (ABA) → 报错，不压栈
   ├── 当前栈顶.Pause() → OnPause()
   └── panel.Show()
         ├── 首次: OnCreate() → OnShow()
@@ -45,6 +47,8 @@ Hide() → ViewStack.Pop:
 Close(panel):
   └── panel.Close() → OnClose() → Destroy
 ```
+
+> **导航规则**: 每个 FullPanel 类型在栈中最多出现一次。连续 Push 同类型（ABB）自动跳过；栈内已有同类型再 Push（ABA）报错。
 
 ### 生命周期钩子
 
@@ -64,26 +68,26 @@ Close(panel):
 
 ### UIManager
 
-| 方法 | 说明 |
-|------|------|
-| `ShowAsync<T>()` | 打开 FullPanel |
-| `ShowAsync(FullPanel)` | 打开已有实例 |
-| `HideAsync()` | 关闭栈顶 |
-| `HideAsync(FullPanel)` | 关闭指定面板 |
-| `CloseAsync(BasePanel)` | 销毁面板 |
-| `GetActivePanel()` | 获取栈顶 |
-| `OnInput(key, down)` | 输入路由 |
-| `PanelProvider` | 静态，可读写，设值时自动迁移缓存 |
-| `Popup` | 静态 PopupManager 实例 |
+| 方法 | 返回 | 说明 |
+|------|------|------|
+| `ShowAsync<T>()` | `UniTask<T>` | 打开 FullPanel，返回实例 |
+| `ShowAsync(FullPanel)` | `UniTask<FullPanel>` | 打开已有实例，返回该实例 |
+| `HideAsync()` | `UniTask<FullPanel>` | 关闭栈顶，返回被关闭的面板 |
+| `HideAsync(FullPanel)` | `UniTask<FullPanel>` | 关闭指定面板，返回被关闭的面板 |
+| `CloseAsync(BasePanel)` | `UniTask` | 销毁面板 |
+| `GetActivePanel()` | `FullPanel?` | 获取栈顶 |
+| `OnInput(key, down)` | `bool` | 输入路由 |
+| `PanelProvider` | `IPanelProvider` | 静态，可读写，设值时自动迁移缓存 |
+| `Popup` | `PopupManager` | 静态 PopupManager 实例 |
 
 ### UIManager.Popup
 
-| 方法 | 说明 |
-|------|------|
-| `ShowAsync<T>()` | 显示弹窗（泛型加载） |
-| `ShowAsync(PopupPanel)` | 显示已有弹窗实例 |
-| `HideAsync(PopupPanel)` | 隐藏弹窗（回池缓存） |
-| `CloseAsync(PopupPanel)` | 销毁弹窗 |
+| 方法 | 返回 | 说明 |
+|------|------|------|
+| `ShowAsync<T>()` | `UniTask<T>` | 显示弹窗（泛型加载） |
+| `ShowAsync(PopupPanel)` | `UniTask<PopupPanel>` | 显示已有弹窗实例 |
+| `HideAsync(PopupPanel)` | `UniTask` | 隐藏弹窗（回池缓存） |
+| `CloseAsync(PopupPanel)` | `UniTask` | 销毁弹窗 |
 
 ### 面板自管理 (ShowSelf / HideSelf / CloseSelf)
 
